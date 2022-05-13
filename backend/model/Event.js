@@ -7,7 +7,10 @@ const EventSchema = new mongoose.Schema({
      event_owner_id: String,
      queue_status: {type: Boolean, default: false},
      current_queue: {type: Array, default: []},
-     event_logger: Array
+     event_logger: Array,
+     dropped_people: Array,
+     participated_people: Array
+     
 });
 
 
