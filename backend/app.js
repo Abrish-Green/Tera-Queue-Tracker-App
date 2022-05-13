@@ -28,7 +28,8 @@ try{
 
 app.use('/api/', API)
 
-API.use('/user/',require('./route/user'))
+API.use('/user/',require('./routes/user'))
+
 
 app.listen(port, () => {
   console.log(`Development Port:${port}`)

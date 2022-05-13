@@ -5,7 +5,6 @@ const User = require('../model/User')
 var validator = require('validator');
 const { AuthUser } = require('../middleware/auth')
 var jwt = require('jsonwebtoken');
-const sendEmail = require('../utils/sendEmail')
 // ADD ACCOUNT
 router.post('/sign_up', async(req,res)=>{
     const { password } = req.body
