@@ -187,19 +187,89 @@ router.post('/:userid/event/create',async (req, res)=>{
      
 })
 
-
-
 //GET /api/user/:userid/events/?q=param
-router.get('/:userid/events/?q=param', (req, res)=>{
-    return res.status(200).json({
-        "status": 200
-    })
+router.get('/:userid/events/', (req, res)=>{
+    const { q } = req.query;
+
+    try{
+        Event.find({ name: { $regex: `${q}`, $options: "i" } }, function(err, docs) {
+            return res.status(200).json({
+                "status": 'GOOD',
+                "found_item": docs.length,
+                "result": docs
+                
+            })
+        });
+        
+    }catch(e){
+        return res.status(200).json({
+            "status": 'BAD',
+            "found_item": 0,
+            "result": [],
+            "message":"Unable to retrive Data"
+            
+        })
+    }
+    
+   
 })
+
 // POST /api/user/:userid/event/:event_id/manage_queue
-router.post('/:userid/event/:event_id/manage_queue', (req, res)=>{
-    return res.status(200).json({
-        "status": 200
-    })
+router.post('/:userid/event/:event_id/manage_queue',async (req, res)=>{
+
+    try{
+        const { userid, event_id } =  req.params 
+        let UpdatedData;
+        if('queue_status' in req.body){
+            const { queue_status } = req.body;
+            if( typeof queue_status == 'boolean'){
+                await Event.findByIdAndUpdate(event_id,{queue_status: queue_status}).exec()
+                UpdatedData = await Event.findOne({_id:event_id}).exec();
+                return res.status(200).json({
+                    "status":"GOOD",
+                    "data": UpdatedData
+                })
+            }else{
+                throw Error()
+            }
+           
+        }
+
+        if('end_session' in req.body){
+            const { end_session } = req.body;
+            if( typeof end_session == 'boolean'){
+                const session_lasted_date =  Date; 
+                await Event.findByIdAndUpdate(event_id,{
+                    "$set": { session_lasted: session_lasted_date.now()},
+                    "$push": {
+                        "event_logger": {
+                                "log": `Session Ended at: ${new Date().toGMTString()}  `
+                             }
+                         } 
+                   
+                
+                },{ "new": true, "upsert": true }).exec()
+              
+                UpdatedData = await Event.findOne({_id:event_id}).exec();
+                return res.status(200).json({
+                    "status":"GOOD",
+                    "data": UpdatedData
+                })
+            }else{
+                throw Error()
+            }
+        }
+
+    }catch(e){
+        //Handle Error
+        //console.error(e)
+        return res.status(200).json({
+            "status": 'BAD',
+            "message": "Unable to Execute the task"
+        })
+    }
+    
+    
 })
 // GET /api/user/:userid/event/:event_id/get_current_queue
 router.get('/:userid/event/:event_id/get_current_queue', (req, res)=>{
